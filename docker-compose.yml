@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    image: predictive-maintenance-iot:latest
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: sqlite:////data/predictive_maintenance.db
+    volumes: ["iot-data:/data"]
+volumes:
+  iot-data:

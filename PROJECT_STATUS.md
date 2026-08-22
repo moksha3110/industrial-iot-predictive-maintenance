@@ -1,0 +1,25 @@
+# Project Status
+
+- [x] FastAPI backend created
+- [x] Industrial machine simulator implemented
+- [x] Temperature monitoring implemented
+- [x] Vibration monitoring implemented
+- [x] Pressure monitoring implemented
+- [x] Sensor failure detection implemented
+- [x] Owner alert system implemented
+- [x] Dashboard implemented
+- [x] REST API implemented
+- [x] Database implemented
+- [x] Automated tests created
+- [x] Dockerfile created
+- [ ] Docker image tested — Docker CLI/engine was not available in this environment
+- [x] Docker Hub instructions provided
+- [x] Kubernetes manifests created
+- [x] CI/CD workflow created
+- [x] AWS architecture documented
+- [x] Failure report written
+- [x] Design justification written
+- [x] Conclusion/future enhancements written
+- [x] README created
+- [x] REPORT.md created
+- [x] Screenshot guide/evidence created (guide provided; browser screenshot facility unavailable)

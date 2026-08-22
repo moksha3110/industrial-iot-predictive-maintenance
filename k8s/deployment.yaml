@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predictive-maintenance
+  namespace: predictive-maintenance
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  selector:
+    matchLabels: {app: predictive-maintenance}
+  template:
+    metadata:
+      labels: {app: predictive-maintenance}
+    spec:
+      serviceAccountName: predictive-maintenance
+      containers:
+        - name: api
+          image: moksha3110/predictive-maintenance-iot:latest
+          imagePullPolicy: Always
+          ports: [{containerPort: 8000}]
+          envFrom:
+            - configMapRef: {name: predictive-maintenance-config}
+            - secretRef: {name: predictive-maintenance-secrets}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          readinessProbe:
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: predictive-maintenance
+  namespace: predictive-maintenance
