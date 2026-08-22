@@ -1,32 +1,57 @@
 name: CI-CD
+
 on:
-  push: {branches: [main]}
-  pull_request: {branches: [main]}
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
 jobs:
   test-build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: {python-version: '3.12', cache: pip}
-      - run: pip install -r requirements.txt
-      - run: pytest -q
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
+
       - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        if: github.event_name == 'push' && secrets.DOCKERHUB_USERNAME != ''
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name == 'push' && secrets.DOCKERHUB_USERNAME != '' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/predictive-maintenance-iot:${{ github.sha }}
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/predictive-maintenance-iot:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/predictive-maintenance-iot:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
       - name: Prepare Kubernetes deployment
-        if: github.event_name == 'push' && secrets.DOCKERHUB_USERNAME != ''
-        run: sed -i "s|<DOCKERHUB_USERNAME>/predictive-maintenance-iot:latest|${{ secrets.DOCKERHUB_USERNAME }}/predictive-maintenance-iot:${{ github.sha }}|" k8s/deployment.yaml
-      - uses: actions/upload-artifact@v4
         if: github.event_name == 'push'
-        with: {name: kubernetes-manifests, path: k8s/}
+        run: |
+          sed -i "s|<DOCKERHUB_USERNAME>/predictive-maintenance-iot:latest|${{ secrets.DOCKERHUB_USERNAME }}/predictive-maintenance-iot:${{ github.sha }}|" k8s/deployment.yaml
+
+      - name: Upload Kubernetes manifests
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubernetes-manifests
+          path: k8s/
